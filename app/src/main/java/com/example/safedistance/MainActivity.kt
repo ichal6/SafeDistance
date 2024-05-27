@@ -20,12 +20,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,6 +69,8 @@ class MainActivity : ComponentActivity() {
     private var sensorY: Float = 0f
 
     private var outputMessage: MutableState<String?> = mutableStateOf("")
+    private var distance: MutableState<Float?> = mutableStateOf(0.0f)
+    private var setDistance: MutableState<Float?> = mutableStateOf(0.0f)
 
     private val cameraPermissionRequestLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -229,6 +233,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         outputMessage.value = "Distance: %.0f mm".format(distance)
+                        this.distance.value = distance
                     }
                 }
             }
@@ -283,6 +288,40 @@ class MainActivity : ComponentActivity() {
                     Text(text = "Hold the phone straight.", color = textColor)
                 }
             }
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .shadow(10.dp)
+                .padding(16.dp)
+                .background(boxColor, shape = RoundedCornerShape(25.dp))
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(400.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Press button when text is sharp", color = textColor)
+                    Text(
+                        text = "Selected distance from face: %.0f mm".format(setDistance.value),
+                        color = textColor
+                    )
+                    Button(
+                        onClick = ::onClick,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .defaultMinSize(minWidth = 150.dp)
+                    ) {
+                        Text(text = "Set sharp distance")
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
         }
+    }
+
+    private fun onClick() {
+        setDistance.value = distance.value
     }
 }
