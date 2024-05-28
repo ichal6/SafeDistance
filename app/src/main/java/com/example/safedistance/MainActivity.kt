@@ -3,6 +3,7 @@ package com.example.safedistance
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.hardware.camera2.CameraCharacteristics
@@ -119,6 +120,9 @@ class MainActivity : ComponentActivity() {
             initializeParams()
             createCameraSource()
         }
+
+        val serviceIntent = Intent(this, CheckDistance::class.java)
+        startService(serviceIntent)
     }
 
     private fun initVibrator() {
