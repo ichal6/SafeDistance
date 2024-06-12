@@ -31,6 +31,7 @@ class CheckDistance : Service() {
     private var runnable: Runnable = object : Runnable {
         override fun run() {
             vibrate(2500)
+            showVibrationNotification()
             handler.postDelayed(this, interval)
         }
     }
@@ -67,6 +68,17 @@ class CheckDistance : Service() {
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
         }
+    }
+
+    private fun showVibrationNotification() {
+        // TODO Add permission for notification like as for camera in Main activity
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val vibrationNotification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Vibration Started")
+            .setContentText("The device is vibrating.")
+            .setSmallIcon(android.R.drawable.ic_dialog_info) // Use built-in icon
+            .build()
+        notificationManager.notify(System.currentTimeMillis().toInt(), vibrationNotification)
     }
 
 

@@ -10,6 +10,7 @@
         android:name="android.hardware.camera.front"
         android:required="true" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
