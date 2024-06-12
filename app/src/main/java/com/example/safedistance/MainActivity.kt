@@ -8,11 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.util.Log
 import android.util.SizeF
 import android.widget.Toast
@@ -77,8 +73,6 @@ class MainActivity : ComponentActivity() {
     private var distance: MutableState<Float?> = mutableStateOf(0.0f)
     private var setDistance: MutableState<Float?> = mutableStateOf(0.0f)
 
-    private lateinit var vibrator: Vibrator
-
     private val cameraPermissionRequestLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
@@ -98,8 +92,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        initVibrator()
 
         setContent {
             SafeDistanceTheme {
@@ -125,15 +117,10 @@ class MainActivity : ComponentActivity() {
         startService(serviceIntent)
     }
 
-    private fun initVibrator() {
-        this.vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager =
-                getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(VIBRATOR_SERVICE) as Vibrator
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        val intent = Intent(this, CheckDistance::class.java)
+        stopService(intent)
     }
 
     private fun initializeParams() {
@@ -283,23 +270,6 @@ class MainActivity : ComponentActivity() {
         return highAccuracyOpts
     }
 
-    private fun vibrate() {
-        val vibrationEffect1: VibrationEffect
-        // requires system version Oreo (API 26)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrationEffect1 =
-                VibrationEffect.createOneShot(2500, VibrationEffect.DEFAULT_AMPLITUDE)
-
-            // it is safe to cancel other vibrations currently taking place
-            vibrator.cancel()
-            vibrator.vibrate(vibrationEffect1)
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(2000)
-        }
-    }
-
-
     @Composable
     fun ScreenDistanceView(message: MutableState<String?>){
         val backgroundColor = Color.Black
@@ -351,7 +321,6 @@ class MainActivity : ComponentActivity() {
                     Button(
                         onClick = {
                             onClick()
-                            vibrate()
                         },
                         modifier = Modifier
                             .padding(16.dp)
