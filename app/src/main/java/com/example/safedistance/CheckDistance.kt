@@ -4,8 +4,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -16,17 +19,42 @@ import android.os.VibratorManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
+
 class CheckDistance : Service() {
     private lateinit var vibrator: Vibrator
     private val handler = Handler(Looper.getMainLooper())
     private val interval: Long = 5000 // 5 seconds
     private val channelId = "VibrationServiceChannel"
+    private lateinit var sharedPreferences: SharedPreferences
+
 
     private var runnable: Runnable = object : Runnable {
         override fun run() {
             vibrate(2500)
             handler.postDelayed(this, interval)
         }
+    }
+
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> stopVibration()
+                Intent.ACTION_USER_PRESENT -> {
+                    if (sharedPreferences.getBoolean("vibrate_on_unlock", true)) {
+                        startVibration()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startVibration() {
+        handler.post(runnable)
+    }
+
+    private fun stopVibration() {
+        handler.removeCallbacks(runnable)
+        vibrator.cancel() // Cancel ongoing vibration
     }
 
     private fun createNotificationChannel() {
@@ -50,6 +78,8 @@ class CheckDistance : Service() {
         super.onCreate()
         initVibrator()
         createNotificationChannel()
+        val storageContext = createDeviceProtectedStorageContext()
+        sharedPreferences = storageContext.getSharedPreferences("settings", Context.MODE_PRIVATE)
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
             this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE
@@ -64,6 +94,11 @@ class CheckDistance : Service() {
         startForeground(1, notification)
         handler.post(runnable) // Start the initial runnable
 
+        registerReceiver(screenReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_USER_PRESENT)
+        })
+        startVibration()
 
     }
 
