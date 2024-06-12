@@ -24,7 +24,7 @@ class CheckDistance : Service() {
 
     private var runnable: Runnable = object : Runnable {
         override fun run() {
-            vibrator.vibrate(2500) // Vibrate for 500 millisecondsinterval
+            vibrate(2500)
             handler.postDelayed(this, interval)
         }
     }
