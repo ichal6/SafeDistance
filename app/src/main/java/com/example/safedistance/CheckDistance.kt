@@ -79,11 +79,18 @@ class CheckDistance : Service() {
     }
 
     private fun showVibrationNotification() {
+        val mainActivityIntent = Intent(this, MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, mainActivityIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val vibrationNotification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Vibration Started")
             .setContentText("The device is vibrating.")
             .setSmallIcon(android.R.drawable.ic_dialog_info) // Use built-in icon
+            .setContentIntent(pendingIntent) // Set the PendingIntent here
             .build()
         notificationManager.notify(System.currentTimeMillis().toInt(), vibrationNotification)
     }
