@@ -289,11 +289,7 @@ class MainActivity : ComponentActivity() {
             }
 
             it.addOnFailureListener { e ->
-                e.printStackTrace()
-                showErrorDialog(
-                    "Problem with calculate distance",
-                    e.message ?: "No extra info"
-                )
+                Log.e("Camera", e.message?:"Problem with calculation of distance")
             }
 
         }.setFacing(CameraSourceConfig.CAMERA_FACING_FRONT).build()
