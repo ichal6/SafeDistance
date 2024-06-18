@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.SizeF
@@ -79,6 +80,9 @@ class MainActivity : ComponentActivity() {
                 // Permission granted: proceed with opening the camera
                 initializeParams()
                 createCameraSource()
+
+                val serviceIntent = Intent(this, CheckDistance::class.java)
+                startService(serviceIntent)
             } else {
                 // Permission denied: inform the user to enable it through settings
                 Toast.makeText(
@@ -86,6 +90,29 @@ class MainActivity : ComponentActivity() {
                     "Go to settings and enable camera permission to use this app",
                     Toast.LENGTH_SHORT
                 ).show()
+            }
+        }
+
+    private val multiplePermissionRequestLauncher: ActivityResultLauncher<Array<String>> =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissionsGranted: Map<String, Boolean> ->
+            permissionsGranted.forEach {
+                permission ->
+                run {
+                    if(!permission.value)
+                        // Permission denied: inform the user to enable it through settings
+                        Toast.makeText(
+                            this,
+                            "Go to settings and enable permissions to use this app",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    if(permission.key == Manifest.permission.CAMERA && permission.value) {
+                        initializeParams()
+                        createCameraSource()
+
+                        val serviceIntent = Intent(this, CheckDistance::class.java)
+                        startService(serviceIntent)
+                    }
+                }
             }
         }
 
@@ -104,17 +131,29 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
-            cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
+                Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
+                multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
+            }
         } else {
-            initializeParams()
-            createCameraSource()
-        }
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
 
-        val serviceIntent = Intent(this, CheckDistance::class.java)
-        startService(serviceIntent)
+                Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
+                cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
+            } else {
+                initializeParams()
+                createCameraSource()
+
+                val serviceIntent = Intent(this, CheckDistance::class.java)
+                startService(serviceIntent)
+            }
+        }
     }
 
     override fun onDestroy() {

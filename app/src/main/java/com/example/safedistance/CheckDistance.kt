@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -18,6 +19,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 
 
 class CheckDistance : Service() {
@@ -103,7 +105,16 @@ class CheckDistance : Service() {
             .setContentIntent(pendingIntent)
             .build()
 
-        startForeground(1, notification)
+        ServiceCompat.startForeground(
+            this,
+            1,
+            notification,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+            } else {
+                0
+            }
+        )
         handler.post(runnable) // Start the initial runnable
 
         registerReceiver(screenReceiver, IntentFilter().apply {
@@ -153,9 +164,4 @@ class CheckDistance : Service() {
             vibrator.vibrate(ms)
         }
     }
-
-    private fun showToast(appContext: Context) {
-        Toast.makeText(appContext, "This is a periodic toast", Toast.LENGTH_SHORT).show()
-    }
-
 }
