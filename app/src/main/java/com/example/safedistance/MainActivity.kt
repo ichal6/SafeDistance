@@ -174,6 +174,7 @@ class MainActivity : ComponentActivity() {
 
             val sensorSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
             assignSensorXY(sensorSize, cameraId)
+
         } catch (e: NoFrontCameraException) {
             showErrorDialog("No Front Camera",
                 "This device does not have a front camera. " +
@@ -194,6 +195,9 @@ class MainActivity : ComponentActivity() {
         if (sensorSize != null) {
             sensorX = sensorSize.width
             sensorY = sensorSize.height
+
+            sendServiceCommand("sensorX", sensorX)
+            sendServiceCommand("sensorY", sensorY)
         } else {
             throw NoSensorSizeException(
                 "For camera: $cameraId Sensor size info isn't available."
@@ -207,6 +211,7 @@ class MainActivity : ComponentActivity() {
             // Retrieving the first focal length
             // TODO add select for user if not correct value
             focalLength = focalLengths[0]
+            sendServiceCommand("focalLength", focalLength)
         } else {
             throw NoFocalLengthInfoException(
                 "For camera: $cameraId Focal Length info isn't available."
@@ -387,6 +392,13 @@ class MainActivity : ComponentActivity() {
     private fun sendServiceCommand(action: String) {
         val intent = Intent(this, CheckDistance::class.java).apply {
             putExtra("ACTION", action)
+        }
+        startService(intent)
+    }
+
+    private fun sendServiceCommand(name: String, value: Float) {
+        val intent = Intent(this, CheckDistance::class.java).apply {
+            putExtra(name, value)
         }
         startService(intent)
     }

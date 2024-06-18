@@ -30,6 +30,18 @@ class CheckDistance : Service() {
     private lateinit var sharedPreferences: SharedPreferences
     private var isRunnable = false
 
+    companion object{
+        const val IMAGE_WIDTH = 1024
+        const val IMAGE_HEIGHT = 1024
+
+        const val AVERAGE_EYE_DISTANCE = 63 // in mm
+    }
+
+    private var focalLength: Float = 0f
+    private var sensorX: Float = 0f
+    private var sensorY: Float = 0f
+
+
 
     private var runnable: Runnable = object : Runnable {
         override fun run() {
@@ -145,6 +157,11 @@ class CheckDistance : Service() {
                 "STOP_MEASURE" -> stopVibration()
                 else -> Log.d("CheckDistance", "Unknown action")
             }
+
+            focalLength = it.getFloatExtra("focalLength", focalLength)
+            sensorX = it.getFloatExtra("sensorX", sensorX)
+            sensorY = it.getFloatExtra("sensorY", sensorY)
+            Log.d("CheckDistance", "Received focalLength: $focalLength, sensorX: $sensorX, sensorY: $sensorY")
         }
         return START_STICKY
     }
