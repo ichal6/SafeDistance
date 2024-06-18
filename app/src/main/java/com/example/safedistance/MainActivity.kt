@@ -162,12 +162,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        val intent = Intent(this, CheckDistance::class.java)
-        stopService(intent)
-    }
-
     private fun initializeParams() {
         val cameraManager = getSystemService(CAMERA_SERVICE) as CameraManager
 
@@ -365,7 +359,7 @@ class MainActivity : ComponentActivity() {
                     )
                     Button(
                         onClick = {
-                            onClick()
+                            changeDistance()
                         },
                         modifier = Modifier
                             .padding(16.dp)
@@ -374,12 +368,30 @@ class MainActivity : ComponentActivity() {
                         Text(text = "Set sharp distance")
                     }
                     Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            sendServiceCommand("STOP_MEASURE")
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .defaultMinSize(minWidth = 150.dp)
+                    ) {
+                        Text(text = "Stop measure a sharp distance")
+                    }
                 }
             }
         }
     }
 
-    private fun onClick() {
+    private fun changeDistance() {
         setDistance.value = distance.value
+        sendServiceCommand("START_MEASURE")
+    }
+
+    private fun sendServiceCommand(action: String) {
+        val intent = Intent(this, CheckDistance::class.java).apply {
+            putExtra("ACTION", action)
+        }
+        startService(intent)
     }
 }

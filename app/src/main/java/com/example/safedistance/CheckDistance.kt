@@ -17,7 +17,7 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.widget.Toast
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 
@@ -28,10 +28,12 @@ class CheckDistance : Service() {
     private val interval: Long = 5000 // 5 seconds
     private val channelId = "VibrationServiceChannel"
     private lateinit var sharedPreferences: SharedPreferences
+    private var isRunnable = false
 
 
     private var runnable: Runnable = object : Runnable {
         override fun run() {
+            isRunnable = true
             vibrate(2500)
             showVibrationNotification()
             handler.postDelayed(this, interval)
@@ -41,6 +43,8 @@ class CheckDistance : Service() {
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
+                "START_MEASURE" -> startVibration()
+                "STOP_MEASURE" -> stopVibration()
                 Intent.ACTION_SCREEN_OFF -> stopVibration()
                 Intent.ACTION_USER_PRESENT -> {
                     if (sharedPreferences.getBoolean("vibrate_on_unlock", true)) {
@@ -52,12 +56,14 @@ class CheckDistance : Service() {
     }
 
     private fun startVibration() {
-        handler.post(runnable)
+        if (!isRunnable)
+            handler.post(runnable)
     }
 
     private fun stopVibration() {
         handler.removeCallbacks(runnable)
         vibrator.cancel() // Cancel ongoing vibration
+        isRunnable = false
     }
 
     private fun createNotificationChannel() {
@@ -125,9 +131,14 @@ class CheckDistance : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Toast.makeText(this, "Info from service", Toast.LENGTH_SHORT).show()
-        this.vibrate(2500)
-
+        intent?.let {
+            val action = it.getStringExtra("ACTION")
+            when (action) {
+                "START_MEASURE" -> startVibration()
+                "STOP_MEASURE" -> stopVibration()
+                else -> Log.d("CheckDistance", "Unknown action")
+            }
+        }
         return START_STICKY
     }
 
