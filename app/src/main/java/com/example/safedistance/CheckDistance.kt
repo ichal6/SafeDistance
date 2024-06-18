@@ -73,7 +73,6 @@ class CheckDistance : Service() {
     }
 
     private fun showVibrationNotification() {
-        // TODO Add permission for notification like as for camera in Main activity
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val vibrationNotification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Vibration Started")

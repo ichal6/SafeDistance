@@ -139,6 +139,12 @@ class MainActivity : ComponentActivity() {
 
                 Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
                 multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
+            } else {
+                initializeParams()
+                createCameraSource()
+
+                val serviceIntent = Intent(this, CheckDistance::class.java)
+                startService(serviceIntent)
             }
         } else {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
