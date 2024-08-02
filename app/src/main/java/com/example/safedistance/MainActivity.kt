@@ -48,6 +48,7 @@ import com.example.safedistance.exception.NoAccessToCameraException
 import com.example.safedistance.exception.NoFocalLengthInfoException
 import com.example.safedistance.exception.NoFrontCameraException
 import com.example.safedistance.exception.NoSensorSizeException
+import com.example.safedistance.service.VibratorService
 import com.example.safedistance.ui.theme.SafeDistanceTheme
 import com.google.mlkit.vision.camera.CameraSourceConfig
 import com.google.mlkit.vision.camera.CameraXSource
@@ -81,7 +82,7 @@ class MainActivity : ComponentActivity() {
                 initializeParams()
                 createCameraSource()
 
-                val serviceIntent = Intent(this, CheckDistance::class.java)
+                val serviceIntent = Intent(this, VibratorService::class.java)
                 startService(serviceIntent)
             } else {
                 // Permission denied: inform the user to enable it through settings
@@ -109,7 +110,7 @@ class MainActivity : ComponentActivity() {
                         initializeParams()
                         createCameraSource()
 
-                        val serviceIntent = Intent(this, CheckDistance::class.java)
+                        val serviceIntent = Intent(this, VibratorService::class.java)
                         startService(serviceIntent)
                     }
                 }
@@ -143,7 +144,7 @@ class MainActivity : ComponentActivity() {
                 initializeParams()
                 createCameraSource()
 
-                val serviceIntent = Intent(this, CheckDistance::class.java)
+                val serviceIntent = Intent(this, VibratorService::class.java)
                 startService(serviceIntent)
             }
         } else {
@@ -156,7 +157,7 @@ class MainActivity : ComponentActivity() {
                 initializeParams()
                 createCameraSource()
 
-                val serviceIntent = Intent(this, CheckDistance::class.java)
+                val serviceIntent = Intent(this, VibratorService::class.java)
                 startService(serviceIntent)
             }
         }
@@ -390,14 +391,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun sendServiceCommand(action: String) {
-        val intent = Intent(this, CheckDistance::class.java).apply {
+        val intent = Intent(this, VibratorService::class.java).apply {
             putExtra("ACTION", action)
         }
         startService(intent)
     }
 
     private fun sendServiceCommand(name: String, value: Float) {
-        val intent = Intent(this, CheckDistance::class.java).apply {
+        val intent = Intent(this, VibratorService::class.java).apply {
             putExtra(name, value)
         }
         startService(intent)
