@@ -1,6 +1,7 @@
 package com.example.safedistance
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -130,12 +131,9 @@ class MainActivity : ComponentActivity() {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-
             if (!isGrantedPermissionForNotification() ||
+                !isGrantedPermissionForCamera()
+            ) {
                 Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
                 multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
             } else {
@@ -143,9 +141,7 @@ class MainActivity : ComponentActivity() {
                 initVibration()
             }
         } else {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-
+            if (!isGrantedPermissionForCamera()) {
                 Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
                 cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
             } else {
@@ -159,6 +155,9 @@ class MainActivity : ComponentActivity() {
         (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 == PackageManager.PERMISSION_GRANTED))
+
+    private fun isGrantedPermissionForCamera() = (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED)
 
     private fun initVibration() {
         val serviceIntent = Intent(this, VibratorService::class.java)
@@ -253,6 +252,7 @@ class MainActivity : ComponentActivity() {
             .show()
     }
 
+    @SuppressLint("MissingPermission") // permission has checked in isGrantedPermissionForCamera function
     private fun createCameraSource(){
         val highAccuracyOpts = faceDetectorOptions()
         val detector = FaceDetection.getClient(highAccuracyOpts)
@@ -263,11 +263,7 @@ class MainActivity : ComponentActivity() {
         Log.d("MyCamera", "createCameraSource: ${cameraXSource.previewSize}")
 
         try {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.CAMERA
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
+            if (!isGrantedPermissionForCamera()) {
                 return
             }
             cameraXSource.start()
