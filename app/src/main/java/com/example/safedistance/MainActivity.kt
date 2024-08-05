@@ -79,9 +79,8 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 // Permission granted: proceed with opening the camera
-                initializeParams()
-                createCameraSource()
                 initCamera()
+                initVibration()
             } else {
                 // Permission denied: inform the user to enable it through settings
                 Toast.makeText(
@@ -139,9 +138,8 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
                 multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
             } else {
-                initializeParams()
-                createCameraSource()
                 initCamera()
+                initVibration()
             }
         } else {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -150,11 +148,15 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
                 cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
             } else {
-                val serviceIntent = Intent(this, VibratorService::class.java)
-                startService(serviceIntent)
                 initCamera()
+                initVibration()
             }
         }
+    }
+
+    private fun initVibration() {
+        val serviceIntent = Intent(this, VibratorService::class.java)
+        startService(serviceIntent)
     }
 
     private fun initCamera() {
