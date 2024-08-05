@@ -81,9 +81,7 @@ class MainActivity : ComponentActivity() {
                 // Permission granted: proceed with opening the camera
                 initializeParams()
                 createCameraSource()
-
-                val serviceIntent = Intent(this, VibratorService::class.java)
-                startService(serviceIntent)
+                initCamera()
             } else {
                 // Permission denied: inform the user to enable it through settings
                 Toast.makeText(
@@ -143,9 +141,7 @@ class MainActivity : ComponentActivity() {
             } else {
                 initializeParams()
                 createCameraSource()
-
-                val serviceIntent = Intent(this, VibratorService::class.java)
-                startService(serviceIntent)
+                initCamera()
             }
         } else {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -154,13 +150,16 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
                 cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
             } else {
-                initializeParams()
-                createCameraSource()
-
                 val serviceIntent = Intent(this, VibratorService::class.java)
                 startService(serviceIntent)
+                initCamera()
             }
         }
+    }
+
+    private fun initCamera() {
+        initializeParams()
+        createCameraSource()
     }
 
     private fun initializeParams() {
