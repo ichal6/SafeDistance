@@ -84,11 +84,7 @@ class MainActivity : ComponentActivity() {
                 initVibration()
             } else {
                 // Permission denied: inform the user to enable it through settings
-                Toast.makeText(
-                    this,
-                    "Go to settings and enable camera permission to use this app",
-                    Toast.LENGTH_SHORT
-                ).show()
+                toastInformUserToGrantedPermission()
             }
         }
 
@@ -99,11 +95,7 @@ class MainActivity : ComponentActivity() {
                 run {
                     if(!permission.value)
                         // Permission denied: inform the user to enable it through settings
-                        Toast.makeText(
-                            this,
-                            "Go to settings and enable permissions to use this app",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        toastInformUserToGrantedPermission()
                     if(permission.key == Manifest.permission.CAMERA && permission.value) {
                         initializeParams()
                         createCameraSource()
@@ -114,6 +106,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+    private fun MainActivity.toastInformUserToGrantedPermission() {
+        Toast.makeText(
+            this,
+            "Go to settings and enable permissions to use this app",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
