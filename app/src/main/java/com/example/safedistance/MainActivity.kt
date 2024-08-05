@@ -135,6 +135,7 @@ class MainActivity : ComponentActivity() {
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
 
+            if (!isGrantedPermissionForNotification() ||
                 Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
                 multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
             } else {
@@ -153,6 +154,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun isGrantedPermissionForNotification() =
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED))
 
     private fun initVibration() {
         val serviceIntent = Intent(this, VibratorService::class.java)
