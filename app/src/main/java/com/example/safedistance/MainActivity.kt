@@ -97,11 +97,9 @@ class MainActivity : ComponentActivity() {
                         // Permission denied: inform the user to enable it through settings
                         toastInformUserToGrantedPermission()
                     if(permission.key == Manifest.permission.CAMERA && permission.value) {
-                        initializeParams()
-                        createCameraSource()
-
-                        val serviceIntent = Intent(this, VibratorService::class.java)
-                        startService(serviceIntent)
+                        // Permission granted: proceed with opening the camera
+                        initCamera()
+                        initVibration()
                     }
                 }
             }
@@ -130,31 +128,32 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (!isGrantedPermissionForNotification() ||
-                !isGrantedPermissionForCamera()
-            ) {
-                Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
-                multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
-            } else {
-                initCamera()
-                initVibration()
-            }
+
+        if(isGrantedPermissionForCamera() && isGrantedPermissionForNotification()) {
+            initCamera()
+            initVibration()
         } else {
-            if (!isGrantedPermissionForCamera()) {
-                Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
-                cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
-            } else {
-                initCamera()
-                initVibration()
-            }
+            requestPermissionsFromUser()
         }
     }
 
-    private fun isGrantedPermissionForNotification() =
-        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                == PackageManager.PERMISSION_GRANTED))
+    private fun requestPermissionsFromUser() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(this, "Please grant require permissions", Toast.LENGTH_SHORT).show()
+            multiplePermissionRequestLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS, Manifest.permission.CAMERA))
+        } else {
+            Toast.makeText(this, "Please grant permission to the camera", Toast.LENGTH_SHORT).show()
+            cameraPermissionRequestLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun isGrantedPermissionForNotification(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                return true
+        return (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                            == PackageManager.PERMISSION_GRANTED)
+    }
+
 
     private fun isGrantedPermissionForCamera() = (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED)
