@@ -45,7 +45,7 @@ class VibratorService : Service() {
                 Intent.ACTION_SCREEN_OFF -> stopVibration()
                 Intent.ACTION_USER_PRESENT -> {
                     if (sharedPreferences.getBoolean("vibrate_on_unlock", true)) {
-                        startVibration()
+                        //startVibration()
                     }
                 }
             }
@@ -63,7 +63,7 @@ class VibratorService : Service() {
 
         initForegroundService()
 
-        runRunnable() // Start the initial runnable
+        //runRunnable() // Start the initial runnable
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

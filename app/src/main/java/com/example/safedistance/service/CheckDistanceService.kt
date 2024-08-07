@@ -35,34 +35,55 @@ class CheckDistanceService : Service() {
         const val AVERAGE_EYE_DISTANCE = 63 // in mm
     }
 
+    private lateinit var cameraXSource: CameraXSource
     private var distance: Float? = null
     private var focalLength: Float = 0f
     private var sensorX: Float = 0f
     private var sensorY: Float = 0f
 
-
     override fun onBind(intent: Intent): IBinder {
         TODO("Return the communication channel to the service.")
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        try {
+            initializeParams()
+            createCameraSource()
+        } catch (e: Exception) {
+            stopService()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             val action = it.getStringExtra("ACTION")
             when (action) {
-                "START_MEASURE" -> startMeasure()
-                "STOP_MEASURE" -> stopMeasure()
+                Constants.ACTION_START_CAMERA.name -> {
+                    try {
+                        startCamera()
+                    } catch (e: Exception) {
+                        stopService()
+                        return START_NOT_STICKY
+                    }
+                }
+                Constants.ACTION_STOP_CAMERA.name -> {
+                    try {
+                        stopCamera()
+                    } catch (e: Exception) {
+                        stopService()
+                        return START_NOT_STICKY
+                    }
+                }
                 else -> Log.d("CheckDistance", "Unknown action")
-            }
-
-            try {
-                initializeParams()
-                createCameraSource()
-            } catch (e: Exception) {
-                stopService()
-                return START_NOT_STICKY
             }
         }
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraXSource.close()
     }
 
     private fun initializeParams() {
@@ -171,21 +192,38 @@ class CheckDistanceService : Service() {
         sendBroadcast(intent)
     }
 
-    @SuppressLint("MissingPermission") // permission has checked in isGrantedPermissionForCamera function
     private fun createCameraSource(){
         val highAccuracyOpts = faceDetectorOptions()
         val detector = FaceDetection.getClient(highAccuracyOpts)
 
         val cameraSourceConfig = cameraSourceConfig(detector)
 
-        val cameraXSource = CameraXSource(cameraSourceConfig)
+        cameraXSource = CameraXSource(cameraSourceConfig)
         Log.d("MyCamera", "createCameraSource: ${cameraXSource.previewSize}")
+    }
 
+    @SuppressLint("MissingPermission") // permission has checked in isGrantedPermissionForCamera function
+    private fun startCamera() {
         try {
             if (!isGrantedPermissionForCamera()) {
                 return
             }
             cameraXSource.start()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            sendErrorMessage(e.cause?.message?:"Camera failure!", e.message?: "No extra message")
+            throw e
+        }
+    }
+
+    @SuppressLint("MissingPermission") // permission has checked in isGrantedPermissionForCamera function
+    private fun stopCamera() {
+        try {
+            if (!isGrantedPermissionForCamera()) {
+                return
+            }
+            cameraXSource.stop()
+            sendDistance(null)
         } catch (e: IOException) {
             e.printStackTrace()
             sendErrorMessage(e.cause?.message?:"Camera failure!", e.message?: "No extra message")

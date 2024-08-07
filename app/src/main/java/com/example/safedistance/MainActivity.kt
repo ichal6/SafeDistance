@@ -223,6 +223,26 @@ class MainActivity : ComponentActivity() {
                     Text(text = message.value!!.ifEmpty{"Please look at the front camera"}, color = textColor)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(text = "Hold the phone straight.", color = textColor)
+                    Button(
+                        onClick = {
+                            sendServiceCommand(Constants.ACTION_START_CAMERA.name)
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .defaultMinSize(minWidth = 150.dp)
+                    ) {
+                        Text(text = "Start camera")
+                    }
+                    Button(
+                        onClick = {
+                            sendServiceCommand(Constants.ACTION_STOP_CAMERA.name)
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .defaultMinSize(minWidth = 150.dp)
+                    ) {
+                        Text(text = "Stop camera")
+                    }
                 }
             }
             Box(modifier = Modifier
@@ -276,7 +296,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun sendServiceCommand(action: String) {
-        val intent = Intent(this, VibratorService::class.java).apply {
+        val intent = Intent(this, CheckDistanceService::class.java).apply {
             putExtra("ACTION", action)
         }
         startService(intent)
