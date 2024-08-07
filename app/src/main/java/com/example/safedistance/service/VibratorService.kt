@@ -19,6 +19,7 @@ import android.os.VibratorManager
 import android.util.Log
 import androidx.core.app.ServiceCompat
 import com.example.safedistance.MainActivity
+import com.example.safedistance.utils.Constants
 import com.example.safedistance.utils.NotificationHelper
 
 class VibratorService : Service() {
@@ -71,6 +72,7 @@ class VibratorService : Service() {
             when(action) {
                 "START_MEASURE" -> startVibration()
                 "STOP_MEASURE" -> stopVibration()
+                Constants.ACTION_CLOSE_ALL_SERVICES.name -> stopService()
                 else -> Log.d("VibrationService", "Unknown action")
             }
         }
@@ -152,6 +154,12 @@ class VibratorService : Service() {
         isRunnable = false
     }
 
+    private fun stopService() {
+        stopVibration()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
     private fun vibrate(ms: Long) {
         val vibrationEffect1: VibrationEffect
         // requires system version Oreo (API 26)
@@ -171,5 +179,6 @@ class VibratorService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(runnable) // Remove the runnable when service is destroyed
+        unregisterReceiver(screenReceiver)
     }
 }
