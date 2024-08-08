@@ -18,6 +18,7 @@ import com.example.safedistance.exception.NoFocalLengthInfoException
 import com.example.safedistance.exception.NoFrontCameraException
 import com.example.safedistance.exception.NoSensorSizeException
 import com.example.safedistance.utils.Constants
+import com.example.safedistance.utils.ServiceCommands
 import com.google.mlkit.vision.camera.CameraSourceConfig
 import com.google.mlkit.vision.camera.CameraXSource
 import com.google.mlkit.vision.face.FaceDetection
@@ -36,6 +37,7 @@ class CheckDistanceService : Service() {
     }
 
     private lateinit var cameraXSource: CameraXSource
+    private lateinit var serviceCommands: ServiceCommands
     private var distance: Float? = null
     private var focalLength: Float = 0f
     private var sensorX: Float = 0f
@@ -53,6 +55,7 @@ class CheckDistanceService : Service() {
         } catch (e: Exception) {
             stopService()
         }
+        serviceCommands = ServiceCommands(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -74,6 +77,12 @@ class CheckDistanceService : Service() {
                         stopService()
                         return START_NOT_STICKY
                     }
+                }
+                Constants.ACTION_START_MEASURE.name -> {
+                    startMeasure()
+                }
+                Constants.ACTION_STOP_MEASURE.name -> {
+                    stopMeasure()
                 }
                 else -> Log.d("CheckDistance", "Unknown action")
             }
@@ -276,10 +285,10 @@ class CheckDistanceService : Service() {
             == PackageManager.PERMISSION_GRANTED)
 
     private fun startMeasure() {
-        TODO("Not yet implemented")
+        serviceCommands.sendServiceCommand(Constants.ACTION_START_VIBRATION.name, VibratorService::class.java)
     }
 
     private fun stopMeasure() {
-        TODO("Not yet implemented")
+        serviceCommands.sendServiceCommand(Constants.ACTION_STOP_VIBRATION.name, VibratorService::class.java)
     }
 }

@@ -277,7 +277,7 @@ class MainActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = {
-                            sendServiceCommand("STOP_MEASURE")
+                            sendServiceCommand(Constants.ACTION_STOP_MEASURE.name)
                         },
                         modifier = Modifier
                             .padding(16.dp)
@@ -292,7 +292,7 @@ class MainActivity : ComponentActivity() {
 
     private fun changeDistance() {
         setDistance.value = distance.value
-        sendServiceCommand("START_MEASURE")
+        sendServiceCommand(Constants.ACTION_START_MEASURE.name)
     }
 
     private fun sendServiceCommand(action: String) {

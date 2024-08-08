@@ -70,8 +70,8 @@ class VibratorService : Service() {
         intent?.let {
             val action = it.getStringExtra("ACTION")
             when(action) {
-                "START_MEASURE" -> startVibration()
-                "STOP_MEASURE" -> stopVibration()
+                Constants.ACTION_START_VIBRATION.name -> startVibration()
+                Constants.ACTION_STOP_VIBRATION.name -> stopVibration()
                 Constants.ACTION_CLOSE_ALL_SERVICES.name -> stopService()
                 else -> Log.d("VibrationService", "Unknown action")
             }
