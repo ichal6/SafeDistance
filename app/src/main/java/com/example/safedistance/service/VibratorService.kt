@@ -68,7 +68,7 @@ class VibratorService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
-            val action = it.getStringExtra("ACTION")
+            val action = it.getStringExtra(Constants.ACTION.name)
             when(action) {
                 Constants.ACTION_START_VIBRATION.name -> startVibration()
                 Constants.ACTION_STOP_VIBRATION.name -> stopVibration()

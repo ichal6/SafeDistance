@@ -39,6 +39,7 @@ class CheckDistanceService : Service() {
     private lateinit var cameraXSource: CameraXSource
     private lateinit var serviceCommands: ServiceCommands
     private var distance: Float? = null
+    private var sharpDistance: Float? = null
     private var focalLength: Float = 0f
     private var sensorX: Float = 0f
     private var sensorY: Float = 0f
@@ -60,7 +61,7 @@ class CheckDistanceService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
-            val action = it.getStringExtra("ACTION")
+            val action = it.getStringExtra(Constants.ACTION.name)
             when (action) {
                 Constants.ACTION_START_CAMERA.name -> {
                     try {
@@ -79,10 +80,14 @@ class CheckDistanceService : Service() {
                     }
                 }
                 Constants.ACTION_START_MEASURE.name -> {
-                    startMeasure()
+                    if(it.hasExtra(Constants.DATA.name)) {
+                        sharpDistance = it.getFloatExtra(Constants.DATA.name, 0F)
+                    } else {
+                        sharpDistance = null
+                    }
                 }
                 Constants.ACTION_STOP_MEASURE.name -> {
-                    stopMeasure()
+                    sharpDistance = null
                 }
                 else -> Log.d("CheckDistance", "Unknown action")
             }
@@ -259,6 +264,7 @@ class CheckDistanceService : Service() {
                         }
 
                         this.distance = distance
+                        checkSmallerThanExceptDistance()
                     }
                 }
                 sendDistance(this.distance)
@@ -272,6 +278,14 @@ class CheckDistanceService : Service() {
         return cameraSourceConfig
     }
 
+    private fun checkSmallerThanExceptDistance() {
+        if(this.sharpDistance == null || this.distance == null || this.sharpDistance!! <= this.distance!!)  {
+            serviceCommands.sendServiceCommand(Constants.ACTION_STOP_VIBRATION.name, VibratorService::class.java)
+        } else {
+            serviceCommands.sendServiceCommand(Constants.ACTION_START_VIBRATION.name, VibratorService::class.java)
+        }
+    }
+
     private fun faceDetectorOptions(): FaceDetectorOptions {
         val highAccuracyOpts = FaceDetectorOptions.Builder()
             .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
@@ -283,12 +297,4 @@ class CheckDistanceService : Service() {
 
     private fun isGrantedPermissionForCamera() = (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED)
-
-    private fun startMeasure() {
-        serviceCommands.sendServiceCommand(Constants.ACTION_START_VIBRATION.name, VibratorService::class.java)
-    }
-
-    private fun stopMeasure() {
-        serviceCommands.sendServiceCommand(Constants.ACTION_STOP_VIBRATION.name, VibratorService::class.java)
-    }
 }

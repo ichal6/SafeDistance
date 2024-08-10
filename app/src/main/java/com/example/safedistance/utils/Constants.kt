@@ -13,5 +13,8 @@ enum class Constants {
 
     VALUE_DISTANCE,
     VALUE_TITLE,
-    VALUE_MESSAGE
+    VALUE_MESSAGE,
+
+    ACTION,
+    DATA
 }

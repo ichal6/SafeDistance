@@ -46,8 +46,11 @@ import com.example.safedistance.service.CheckDistanceService
 import com.example.safedistance.service.VibratorService
 import com.example.safedistance.ui.theme.SafeDistanceTheme
 import com.example.safedistance.utils.Constants
+import com.example.safedistance.utils.ServiceCommands
 
 class MainActivity : ComponentActivity() {
+    private lateinit var serviceCommands: ServiceCommands
+
     private var outputMessage: MutableState<String?> = mutableStateOf("")
     private var distance: MutableState<Float?> = mutableStateOf(0.0f)
     private var setDistance: MutableState<Float?> = mutableStateOf(0.0f)
@@ -115,6 +118,7 @@ class MainActivity : ComponentActivity() {
         }
 
         registerBroadcastReceiver()
+        serviceCommands = ServiceCommands(this)
 
         if(isGrantedPermissionForCamera() && isGrantedPermissionForNotification()) {
             initCamera()
@@ -132,7 +136,12 @@ class MainActivity : ComponentActivity() {
     private fun handleCloseAllActivities(intent: Intent) {
         val title = intent.getStringExtra(Constants.VALUE_TITLE.name)
         val message = intent.getStringExtra(Constants.VALUE_MESSAGE.name)
-        sendServiceCommand(Constants.ACTION_CLOSE_ALL_SERVICES.name)
+        serviceCommands.sendServiceCommand(
+            Constants.ACTION_CLOSE_ALL_SERVICES.name,
+            CheckDistanceService::class.java)
+        serviceCommands.sendServiceCommand(
+            Constants.ACTION_CLOSE_ALL_SERVICES.name,
+            VibratorService::class.java)
         showErrorDialog(title, message)
     }
 
@@ -225,7 +234,9 @@ class MainActivity : ComponentActivity() {
                     Text(text = "Hold the phone straight.", color = textColor)
                     Button(
                         onClick = {
-                            sendServiceCommand(Constants.ACTION_START_CAMERA.name)
+                            serviceCommands.sendServiceCommand(
+                                Constants.ACTION_START_CAMERA.name,
+                                CheckDistanceService::class.java)
                         },
                         modifier = Modifier
                             .padding(16.dp)
@@ -235,7 +246,9 @@ class MainActivity : ComponentActivity() {
                     }
                     Button(
                         onClick = {
-                            sendServiceCommand(Constants.ACTION_STOP_CAMERA.name)
+                            serviceCommands.sendServiceCommand(
+                                Constants.ACTION_STOP_CAMERA.name,
+                                CheckDistanceService::class.java)
                         },
                         modifier = Modifier
                             .padding(16.dp)
@@ -277,7 +290,9 @@ class MainActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = {
-                            sendServiceCommand(Constants.ACTION_STOP_MEASURE.name)
+                            serviceCommands.sendServiceCommand(
+                                Constants.ACTION_STOP_MEASURE.name,
+                                CheckDistanceService::class.java)
                         },
                         modifier = Modifier
                             .padding(16.dp)
@@ -292,13 +307,10 @@ class MainActivity : ComponentActivity() {
 
     private fun changeDistance() {
         setDistance.value = distance.value
-        sendServiceCommand(Constants.ACTION_START_MEASURE.name)
-    }
-
-    private fun sendServiceCommand(action: String) {
-        val intent = Intent(this, CheckDistanceService::class.java).apply {
-            putExtra("ACTION", action)
-        }
-        startService(intent)
+        if(setDistance.value != null)
+            serviceCommands.sendServiceCommand(
+                Constants.ACTION_START_MEASURE.name,
+                CheckDistanceService::class.java,
+                this.setDistance.value!!)
     }
 }
