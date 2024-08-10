@@ -34,7 +34,7 @@ class VibratorService : Service() {
         override fun run() {
             isRunnable = true
             vibrate(2500)
-            showVibrationNotification("Vibration Started", "The device is vibrating.")
+            showVibrationNotification("Too close", "You are too close to device!")
             handler.postDelayed(this, interval)
         }
     }
