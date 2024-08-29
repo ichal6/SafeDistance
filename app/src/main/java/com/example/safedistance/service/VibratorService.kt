@@ -1,7 +1,5 @@
 package com.example.safedistance.service
 
-import android.app.Notification
-import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -18,9 +16,9 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import androidx.core.app.ServiceCompat
-import com.example.safedistance.MainActivity
 import com.example.safedistance.utils.Constants
 import com.example.safedistance.utils.NotificationHelper
+import com.example.safedistance.utils.ServiceCommands
 
 class VibratorService : Service() {
     private val handler = Handler(Looper.getMainLooper())
@@ -28,7 +26,9 @@ class VibratorService : Service() {
     private lateinit var vibrator: Vibrator
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var notificationHelper: NotificationHelper
+    private var serviceCommands: ServiceCommands = ServiceCommands(this)
     private var isRunnable = false
+    private var isScreenOn = true
 
     private var runnable: Runnable = object : Runnable {
         override fun run() {
@@ -42,10 +42,20 @@ class VibratorService : Service() {
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                Intent.ACTION_SCREEN_OFF -> stopVibration()
+                Intent.ACTION_SCREEN_OFF -> {
+                    isScreenOn = false
+                    stopVibration()
+                    serviceCommands.sendServiceCommand(
+                        Constants.ACTION_STOP_CAMERA.name, CheckDistanceService::class.java
+                    )
+                }
                 Intent.ACTION_USER_PRESENT -> {
+                    isScreenOn = true
                     if (sharedPreferences.getBoolean("vibrate_on_unlock", true)) {
-                        //startVibration()
+                        startVibration()
+                        serviceCommands.sendServiceCommand(
+                            Constants.ACTION_START_CAMERA.name, CheckDistanceService::class.java
+                        )
                     }
                 }
             }
@@ -55,22 +65,22 @@ class VibratorService : Service() {
     override fun onCreate() {
         super.onCreate()
         initVibrator()
-
         initActionsForScreenStatus()
-
         initNotificationHelper()
-        showVibrationNotification("Vibration Service", "Service is running")
-
         initForegroundService()
-
-        //runRunnable() // Start the initial runnable
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             val action = it.getStringExtra(Constants.ACTION.name)
             when(action) {
-                Constants.ACTION_START_VIBRATION.name -> startVibration()
+                Constants.ACTION_START_VIBRATION.name -> {
+                    if (isScreenOn) {
+                        startVibration()
+                    } else {
+                        stopVibration()
+                    }
+                }
                 Constants.ACTION_STOP_VIBRATION.name -> stopVibration()
                 Constants.ACTION_CLOSE_ALL_SERVICES.name -> stopService()
                 else -> Log.d("VibrationService", "Unknown action")
@@ -106,7 +116,7 @@ class VibratorService : Service() {
         ServiceCompat.startForeground(
             this,
             1,
-            createNotification("Vibration Service", "Service is running"),
+            notificationHelper.createNotification("Vibration Service", "Service is running", this),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
             } else {
@@ -125,17 +135,8 @@ class VibratorService : Service() {
         })
     }
 
-    private fun createNotification(title: String, body: String): Notification {
-        val mainActivityIntent = Intent(this, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, mainActivityIntent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        return notificationHelper.getNotificationBuilder(title, body, pendingIntent).build()
-    }
-
     private fun showVibrationNotification(title :String, body: String) {
-        val notificationBuilder = createNotification(title, body)
+        val notificationBuilder = notificationHelper.createNotification(title, body, this)
         notificationHelper.notify(System.currentTimeMillis().toInt(), notificationBuilder)
     }
 
@@ -161,19 +162,9 @@ class VibratorService : Service() {
     }
 
     private fun vibrate(ms: Long) {
-        val vibrationEffect1: VibrationEffect
-        // requires system version Oreo (API 26)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrationEffect1 =
-                VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE)
-
-            // it is safe to cancel other vibrations currently taking place
-            vibrator.cancel()
-            vibrator.vibrate(vibrationEffect1)
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(ms)
-        }
+        val vibrationEffect = VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE)
+        vibrator.cancel()
+        vibrator.vibrate(vibrationEffect)
     }
 
     override fun onDestroy() {
