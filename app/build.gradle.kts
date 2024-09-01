@@ -1,10 +1,9 @@
-val junitJupiter by extra("5.10.3")
+val jUnit4Version by extra("4.13.2")
 
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // this version matches your Kotlin version
-    id("de.mannodermaus.android-junit5") version "1.10.2.0"
 }
 
 android {
@@ -63,18 +62,15 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("com.google.android.gms:play-services-mlkit-face-detection:17.1.0")
     implementation("com.google.mlkit:camera:16.0.0-beta3")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiter")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiter")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiter")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testImplementation("org.robolectric:robolectric:4.12.1")
+    testImplementation("junit:junit:$jUnit4Version")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.11.0")
     androidTestImplementation("androidx.compose.ui:ui-test-android") // Compose test framework
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.06.00"))
-    androidTestImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiter")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest") // Needed for createComposeExtension()
                                                                // and createAndroidComposeExtension()
 }
 
-junitPlatform {
-    instrumentationTests.includeExtensions.set(true)
-}

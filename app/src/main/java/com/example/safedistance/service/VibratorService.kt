@@ -28,7 +28,8 @@ class VibratorService : Service() {
     private lateinit var notificationHelper: NotificationHelper
     private var serviceCommands: ServiceCommands = ServiceCommands(this)
     private var isRunnable = false
-    private var isScreenOn = true
+    internal var isScreenOn = true
+        private set
 
     private var runnable: Runnable = object : Runnable {
         override fun run() {
@@ -39,7 +40,7 @@ class VibratorService : Service() {
         }
     }
 
-    private val screenReceiver = object : BroadcastReceiver() {
+    internal val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> {

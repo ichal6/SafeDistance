@@ -1,8 +1,9 @@
 package com.example.safedistance
 
 import androidx.test.platform.app.InstrumentationRegistry
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import org.junit.Test
+
 
 /**
  * Instrumented test, which will execute on an Android device.
