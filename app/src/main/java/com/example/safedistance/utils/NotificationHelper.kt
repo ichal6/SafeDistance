@@ -10,10 +10,10 @@ import androidx.core.app.NotificationCompat
 import com.example.safedistance.MainActivity
 import java.util.UUID
 
-class NotificationHelper(
+class NotificationHelper private constructor(
     private val context: Context,
     private val channelName: String,
-    private val descriptionChannel: String
+    private val channelDescription: String
 ) {
     private val channelID = UUID.randomUUID().toString()
     private val notificationManager: NotificationManager =
@@ -23,13 +23,18 @@ class NotificationHelper(
         createNotificationChannel()
     }
 
+    companion object Factory {
+        fun create(context: Context, channelName: String, channelDescription: String) =
+            NotificationHelper(context, channelName, channelDescription)
+    }
+
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             channelID,
             channelName,
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = descriptionChannel
+            description = channelDescription
         }
         notificationManager.createNotificationChannel(channel)
     }

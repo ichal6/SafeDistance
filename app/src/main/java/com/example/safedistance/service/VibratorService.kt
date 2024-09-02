@@ -106,7 +106,7 @@ class VibratorService : Service() {
     }
 
     private fun initNotificationHelper() {
-        this.notificationHelper = NotificationHelper(
+        this.notificationHelper = NotificationHelper.create(
             this,
             "Vibration Notification",
             "Channel use to display notification for Vibration"
