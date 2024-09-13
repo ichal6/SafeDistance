@@ -35,7 +35,6 @@ class VibratorService : Service() {
         override fun run() {
             isRunnable = true
             vibrate(2500)
-            showVibrationNotification("Too close", "You are too close to device!")
             handler.postDelayed(this, interval)
         }
     }
@@ -134,11 +133,6 @@ class VibratorService : Service() {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_USER_PRESENT)
         })
-    }
-
-    private fun showVibrationNotification(title :String, body: String) {
-        val notificationBuilder = notificationHelper.createNotification(title, body, this)
-        notificationHelper.notify(System.currentTimeMillis().toInt(), notificationBuilder)
     }
 
     private fun startVibration() {

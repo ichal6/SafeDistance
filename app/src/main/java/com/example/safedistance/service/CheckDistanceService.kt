@@ -18,6 +18,7 @@ import com.example.safedistance.exception.NoFocalLengthInfoException
 import com.example.safedistance.exception.NoFrontCameraException
 import com.example.safedistance.exception.NoSensorSizeException
 import com.example.safedistance.utils.Constants
+import com.example.safedistance.utils.NotificationHelper
 import com.example.safedistance.utils.ServiceCommands
 import com.google.mlkit.vision.camera.CameraSourceConfig
 import com.google.mlkit.vision.camera.CameraXSource
@@ -38,6 +39,7 @@ class CheckDistanceService : Service() {
 
     private lateinit var cameraXSource: CameraXSource
     private lateinit var serviceCommands: ServiceCommands
+    private lateinit var notificationHelper: NotificationHelper
     private var distance: Float? = null
     private var sharpDistance: Float? = null
     private var focalLength: Float = 0f
@@ -50,6 +52,7 @@ class CheckDistanceService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        initNotificationHelper()
         try {
             initializeParams()
             createCameraSource()
@@ -283,7 +286,23 @@ class CheckDistanceService : Service() {
             serviceCommands.sendServiceCommand(Constants.ACTION_STOP_VIBRATION.name, VibratorService::class.java)
         } else {
             serviceCommands.sendServiceCommand(Constants.ACTION_START_VIBRATION.name, VibratorService::class.java)
+            showVibrationNotification()
         }
+    }
+
+    private fun initNotificationHelper() {
+        this.notificationHelper = NotificationHelper.create(
+            this,
+            "CheckDistance Notification",
+            "Channel use to display notification for Distance measure")
+    }
+
+    private fun showVibrationNotification() {
+        val notification = notificationHelper.createNotification(
+            "Too close",
+            "You are too close to device!",
+            this)
+        notificationHelper.notify(System.currentTimeMillis().toInt(), notification)
     }
 
     private fun faceDetectorOptions(): FaceDetectorOptions {
