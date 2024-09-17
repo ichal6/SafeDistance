@@ -15,45 +15,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import com.example.safedistance.service.CheckDistanceService
 import com.example.safedistance.service.VibratorService
 import com.example.safedistance.ui.theme.SafeDistanceTheme
 import com.example.safedistance.utils.Constants
 import com.example.safedistance.utils.ServiceCommands
+import com.example.safedistance.view.ScreenDistanceView
 
 class MainActivity : ComponentActivity() {
     private lateinit var serviceCommands: ServiceCommands
-
-    private var outputMessage: MutableState<String?> = mutableStateOf("")
-    private var distance: MutableState<Float?> = mutableStateOf(0.0f)
-    private var setDistance: MutableState<Float?> = mutableStateOf(0.0f)
+    private lateinit var screenDistanceView: ScreenDistanceView
 
     private val cameraPermissionRequestLauncher: ActivityResultLauncher<String> =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -88,7 +64,7 @@ class MainActivity : ComponentActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 Constants.ACTION_CLOSE_ALL_ACTIVITIES.name -> handleCloseAllActivities(intent)
-                Constants.ACTION_DISTANCE.name -> handleDistance(intent)
+                Constants.ACTION_DISTANCE.name -> screenDistanceView.handleDistance(intent)
             }
         }
     }
@@ -112,7 +88,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    ScreenDistanceView(outputMessage)
+                    screenDistanceView = ScreenDistanceView(serviceCommands)
+                    screenDistanceView.View()
                 }
             }
         }
@@ -143,15 +120,6 @@ class MainActivity : ComponentActivity() {
             Constants.ACTION_CLOSE_ALL_SERVICES.name,
             VibratorService::class.java)
         showErrorDialog(title, message)
-    }
-
-    private fun handleDistance(intent: Intent) {
-        if (intent.hasExtra(Constants.VALUE_DISTANCE.name)) {
-            distance.value = intent.getFloatExtra(Constants.VALUE_DISTANCE.name, 0.0F)
-            outputMessage.value = "Distance: %.0f mm".format(distance.value)
-        } else {
-            outputMessage.value = "No face detection!"
-        }
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag") // For Android version < TIRAMISU
@@ -203,114 +171,5 @@ class MainActivity : ComponentActivity() {
             .setPositiveButton(android.R.string.ok) { _, _ -> finish() }
             .setOnDismissListener { finish() }
             .show()
-    }
-
-    @Composable
-    fun ScreenDistanceView(message: MutableState<String?>){
-        val backgroundColor = Color.Black
-        val boxColor = Color(0xFF222222)
-        val textColor = Color.White
-
-        Column (modifier = Modifier
-            .background(backgroundColor)
-            .fillMaxSize()){
-            Text(text = "Screen Distance", fontWeight = FontWeight.Bold, modifier = Modifier.offset(x = 16.dp, y = 10.dp), fontSize = 24.sp, color = textColor)
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .shadow(10.dp)
-                .padding(16.dp)
-                .background(boxColor, shape = RoundedCornerShape(25.dp))
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = message.value!!.ifEmpty{"Please look at the front camera"}, color = textColor)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = "Hold the phone straight.", color = textColor)
-                    Button(
-                        onClick = {
-                            serviceCommands.sendServiceCommand(
-                                Constants.ACTION_START_CAMERA.name,
-                                CheckDistanceService::class.java)
-                        },
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .defaultMinSize(minWidth = 150.dp)
-                    ) {
-                        Text(text = "Start camera")
-                    }
-                    Button(
-                        onClick = {
-                            serviceCommands.sendServiceCommand(
-                                Constants.ACTION_STOP_CAMERA.name,
-                                CheckDistanceService::class.java)
-                        },
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .defaultMinSize(minWidth = 150.dp)
-                    ) {
-                        Text(text = "Stop camera")
-                    }
-                }
-            }
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp)
-                .shadow(10.dp)
-                .padding(16.dp)
-                .background(boxColor, shape = RoundedCornerShape(25.dp))
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Press button when text is sharp", color = textColor)
-                    Text(
-                        text = "Selected distance from face: %.0f mm".format(setDistance.value),
-                        color = textColor
-                    )
-                    Button(
-                        onClick = {
-                            changeDistance()
-                        },
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .defaultMinSize(minWidth = 150.dp)
-                    ) {
-                        Text(text = "Set sharp distance")
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            serviceCommands.sendServiceCommand(
-                                Constants.ACTION_STOP_MEASURE.name,
-                                CheckDistanceService::class.java)
-                        },
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .defaultMinSize(minWidth = 150.dp)
-                    ) {
-                        Text(text = "Stop measure a sharp distance")
-                    }
-                }
-            }
-        }
-    }
-
-    private fun changeDistance() {
-        setDistance.value = distance.value
-        if(setDistance.value != null)
-            serviceCommands.sendServiceCommand(
-                Constants.ACTION_START_MEASURE.name,
-                CheckDistanceService::class.java,
-                this.setDistance.value!!)
     }
 }

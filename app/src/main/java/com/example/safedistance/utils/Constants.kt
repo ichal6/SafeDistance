@@ -16,5 +16,7 @@ enum class Constants {
     VALUE_MESSAGE,
 
     ACTION,
-    DATA
+    DATA,
+
+    TAG_START_CAMERA_BUTTON
 }
