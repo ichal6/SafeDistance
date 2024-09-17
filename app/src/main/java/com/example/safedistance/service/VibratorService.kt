@@ -105,7 +105,7 @@ class VibratorService : Service() {
     }
 
     private fun initNotificationHelper() {
-        this.notificationHelper = NotificationHelper.create(
+        this.notificationHelper = NotificationHelper.createSilent(
             this,
             "Vibration Notification",
             "Channel use to display notification for Vibration"
@@ -116,7 +116,10 @@ class VibratorService : Service() {
         ServiceCompat.startForeground(
             this,
             1,
-            notificationHelper.createNotification("Vibration Service", "Service is running", this),
+            notificationHelper.createNotification(
+                "Safe Distance Vibrator",
+                "Application running in background",
+                this),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
             } else {

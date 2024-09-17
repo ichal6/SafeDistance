@@ -13,7 +13,8 @@ import java.util.UUID
 class NotificationHelper private constructor(
     private val context: Context,
     private val channelName: String,
-    private val channelDescription: String
+    private val channelDescription: String,
+    private val isSilent: Boolean
 ) {
     private val channelID = UUID.randomUUID().toString()
     private val notificationManager: NotificationManager =
@@ -25,16 +26,33 @@ class NotificationHelper private constructor(
 
     companion object Factory {
         fun create(context: Context, channelName: String, channelDescription: String) =
-            NotificationHelper(context, channelName, channelDescription)
+            NotificationHelper(
+                context,
+                channelName,
+                channelDescription,
+                isSilent = false)
+
+        fun createSilent(context: Context, channelName: String, channelDescription: String) =
+            NotificationHelper(
+                context,
+                channelName,
+                channelDescription,
+                isSilent = true)
     }
 
     private fun createNotificationChannel() {
+        val importance = if (isSilent) NotificationManager.IMPORTANCE_LOW else NotificationManager.IMPORTANCE_DEFAULT
+
         val channel = NotificationChannel(
             channelID,
             channelName,
-            NotificationManager.IMPORTANCE_DEFAULT
+            importance
         ).apply {
             description = channelDescription
+            if (isSilent) {
+                setSound(null, null)
+                enableVibration(false)
+            }
         }
         notificationManager.createNotificationChannel(channel)
     }
@@ -46,6 +64,7 @@ class NotificationHelper private constructor(
             .setContentText(body)
             .setSmallIcon(android.R.drawable.ic_dialog_info) // Use built-in icon
             .setContentIntent(intent)
+            .setSilent(isSilent)
 
     fun notify(id: Int, notification: Notification) {
         notificationManager.notify(id, notification)
